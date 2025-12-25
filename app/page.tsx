@@ -6,7 +6,7 @@ import {
   Tablet,
   ChevronDown,
 } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { appConfig } from "@/config/app.config"
@@ -16,6 +16,8 @@ export default function LandingPage() {
   const [activeTab, setActiveTab] = useState<"iphone" | "ipad">("iphone")
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [theme, setTheme] = useState<"light" | "dark" | "system">("light")
+  const [currentScreenshotIndex, setCurrentScreenshotIndex] = useState(0)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const root = document.documentElement
@@ -28,6 +30,25 @@ export default function LandingPage() {
       root.classList.add(theme)
     }
   }, [theme])
+
+  // Handle screenshot scroll for mobile
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container) return
+
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft
+      const itemWidth = container.querySelector("div")?.offsetWidth || 0
+      const gap = 16 // gap-4 = 16px
+      const index = Math.round(scrollLeft / (itemWidth + gap))
+      setCurrentScreenshotIndex(Math.min(index, appConfig.screenshots[activeTab].length - 1))
+    }
+
+    container.addEventListener("scroll", handleScroll)
+    handleScroll() // Initial calculation
+    setCurrentScreenshotIndex(0) // Reset when tab changes
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [activeTab])
 
   const renderLogo = () => {
     if (appConfig.app.logo.image) {
@@ -46,22 +67,22 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="mx-auto max-w-5xl bg-card text-card-foreground rounded-3xl shadow-lg p-8 md:p-12">
+    <div className="min-h-screen bg-background py-4 sm:py-8 px-4">
+      <div className="mx-auto max-w-5xl bg-card text-card-foreground rounded-2xl sm:rounded-3xl shadow-lg p-4 sm:p-8 md:p-12">
         {/* Hero Section */}
         <section className="mb-16">
           <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
             {/* Left side: App Icon */}
-            <div className="flex-shrink-0">
-              <div className="flex h-44 w-44 items-center justify-center rounded-3xl shadow-md">
+            <div className="flex-shrink-0 mx-auto md:mx-0">
+              <div className="flex h-32 w-32 sm:h-40 sm:w-40 md:h-44 md:w-44 items-center justify-center rounded-2xl sm:rounded-3xl shadow-md">
                 {renderLogo()}
               </div>
             </div>
 
             {/* Right side: Content */}
-            <div className="flex-1">
-              <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground">{appConfig.app.name}</h1>
-              <p className="mb-6 text-lg leading-relaxed text-muted-foreground">{appConfig.app.description}</p>
+            <div className="flex-1 text-center md:text-left">
+              <h1 className="mb-4 text-3xl sm:text-4xl font-bold tracking-tight text-foreground">{appConfig.app.name}</h1>
+              <p className="mb-6 text-base sm:text-lg leading-relaxed text-muted-foreground">{appConfig.app.description}</p>
               <div className="flex flex-col sm:flex-row gap-3">
                 {appConfig.downloadLinks.appStore && (
                   <a
@@ -102,12 +123,12 @@ export default function LandingPage() {
 
         {/* Screenshots Section */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
             <h2 className="text-3xl font-bold text-foreground">Screenshots</h2>
             <div className="flex gap-2">
               <button
                 onClick={() => setActiveTab("iphone")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 sm:px-4 rounded-lg border transition-colors ${
                   activeTab === "iphone"
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card border-border text-muted-foreground hover:border-foreground/40"
@@ -118,7 +139,7 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => setActiveTab("ipad")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-colors ${
+                className={`flex items-center gap-2 px-3 py-2 sm:px-4 rounded-lg border transition-colors ${
                   activeTab === "ipad"
                     ? "bg-primary text-primary-foreground border-primary"
                     : "bg-card border-border text-muted-foreground hover:border-foreground/40"
@@ -129,7 +150,40 @@ export default function LandingPage() {
               </button>
             </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          {/* Mobile: Horizontal scrollable carousel */}
+          <div className="sm:hidden mb-4">
+            <div
+              ref={scrollContainerRef}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory scrollbar-hide -mx-4 px-4 pb-2"
+              style={{ scrollBehavior: "smooth" }}
+            >
+              {appConfig.screenshots[activeTab].map((src, index) => (
+                <div
+                  key={index}
+                  className={`relative flex-shrink-0 overflow-hidden rounded-2xl bg-gradient-to-br from-purple-600 to-blue-600 snap-center ${
+                    activeTab === "iphone" ? "w-[280px] aspect-[9/19]" : "w-[360px] aspect-[4/3]"
+                  }`}
+                >
+                  <Image src={src} alt={`Screenshot ${index + 1}`} fill className="object-cover" />
+                </div>
+              ))}
+            </div>
+            {/* Scroll indicators */}
+            <div className="flex gap-1.5 justify-center mt-4">
+              {appConfig.screenshots[activeTab].map((_, index) => (
+                <div
+                  key={index}
+                  className={`h-1.5 rounded-full transition-all ${
+                    index === currentScreenshotIndex
+                      ? "w-8 bg-primary"
+                      : "w-2 bg-border"
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+          {/* Desktop: Grid layout */}
+          <div className="hidden sm:grid sm:grid-cols-3 gap-4 mb-4">
             {appConfig.screenshots[activeTab].map((src, index) => (
               <div
                 key={index}
@@ -141,16 +195,17 @@ export default function LandingPage() {
               </div>
             ))}
           </div>
-          <div className="flex gap-1 justify-center">
-            <div className="h-1 w-24 bg-border rounded-full" />
-            <div className="h-1 w-24 bg-border rounded-full" />
-            <div className="h-1 w-24 bg-border rounded-full" />
+          {/* Desktop indicators */}
+          <div className="hidden sm:flex gap-1 justify-center">
+            {appConfig.screenshots[activeTab].map((_, index) => (
+              <div key={index} className="h-1 w-24 bg-border rounded-full" />
+            ))}
           </div>
         </section>
 
         {/* Features Section */}
         <section className="mb-16">
-          <h2 className="mb-8 text-3xl font-bold text-foreground">Features</h2>
+          <h2 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold text-foreground">Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {appConfig.features.map((feature, index) => {
               const IconComponent = feature.icon
@@ -169,7 +224,7 @@ export default function LandingPage() {
 
         {/* Reviews Section */}
         <section className="mb-16">
-          <h2 className="mb-8 text-3xl font-bold text-foreground">User Reviews</h2>
+          <h2 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold text-foreground">User Reviews</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {appConfig.reviews.map((review, index) => (
               <div key={index} className="p-6 bg-card border border-border rounded-2xl">
@@ -196,7 +251,7 @@ export default function LandingPage() {
 
         {/* FAQ Section */}
         <section className="mb-16">
-          <h2 className="mb-8 text-3xl font-bold text-foreground">FAQ</h2>
+          <h2 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold text-foreground">FAQ</h2>
           <div className="space-y-3">
             {appConfig.faqs.map((faq, index) => (
               <div key={index} className="bg-card border border-border rounded-2xl overflow-hidden">

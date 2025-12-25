@@ -21,11 +21,11 @@ export function Footer() {
   }, [theme])
 
   return (
-    <footer className="pt-12 mt-12 border-t border-border">
-      <div className="flex flex-col md:flex-row items-start justify-between gap-8 mb-8">
+    <footer className="pt-8 sm:pt-12 mt-8 sm:mt-12 border-t border-border">
+      <div className="flex flex-col md:flex-row items-start justify-between gap-6 sm:gap-8 mb-6 sm:mb-8">
         {/* Left side: App branding */}
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-4">
+        <div className="flex-1 w-full md:w-auto">
+          <div className="flex items-center gap-3 mb-3 sm:mb-4">
             {appConfig.app.logo.image ? (
               <Image
                 src={appConfig.app.logo.image}
@@ -35,13 +35,13 @@ export function Footer() {
                 className="rounded-xl"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-black">
-                <Apple className="h-7 w-7 text-white" />
+              <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-black">
+                <Apple className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
               </div>
             )}
-            <h3 className="text-xl font-bold text-foreground">{appConfig.app.name}</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-foreground">{appConfig.app.name}</h3>
           </div>
-          <p className="text-sm max-w-md text-muted-foreground">{appConfig.app.description}</p>
+          <p className="text-xs sm:text-sm max-w-md text-muted-foreground">{appConfig.app.description}</p>
         </div>
 
         {/* Right side: Theme toggle */}
@@ -74,9 +74,9 @@ export function Footer() {
       </div>
 
       {/* Bottom row */}
-      <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 sm:gap-6">
         {/* Social links */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 order-1 md:order-none">
           {appConfig.footer.socialLinks.instagram && (
             <a
               href={appConfig.footer.socialLinks.instagram}
@@ -112,10 +112,10 @@ export function Footer() {
         </div>
 
         {/* Copyright */}
-        <div className="text-sm text-muted-foreground">{appConfig.footer.copyright}</div>
+        <div className="text-xs sm:text-sm text-muted-foreground order-3 md:order-none text-center md:text-left">{appConfig.footer.copyright}</div>
 
         {/* Legal links */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 order-2 md:order-none">
           {appConfig.footer.legalLinks.privacy && (
             <>
               <Link
